@@ -27,14 +27,9 @@
                         <p class="text-sm opacity-80">数据 · 分析 · 策略 · 教程</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/calendar" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition font-medium">
-                        📅 新股日历（简化版）
-                    </a>
-                    <button onclick="refreshData()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
-                        🔄 刷新数据
-                    </button>
-                </div>
+                <button onclick="refreshData()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
+                    🔄 刷新数据
+                </button>
             </div>
         </div>
     </nav>
@@ -42,7 +37,7 @@
     <!-- 标签页 -->
     <div class="max-w-7xl mx-auto px-4 mt-6">
         <div class="flex space-x-1 bg-white rounded-lg shadow p-1">
-            <button onclick="showTab('calendar')" class="tab-btn flex-1 px-4 py-3 rounded-md font-medium tab-active" data-tab="calendar">
+            <button onclick="showTab('ipo-calendar')" class="tab-btn flex-1 px-4 py-3 rounded-md font-medium tab-active" data-tab="ipo-calendar">
                 📅 新股日历
             </button>
             <button onclick="showTab('analysis')" class="tab-btn flex-1 px-4 py-3 rounded-md font-medium" data-tab="analysis">
@@ -59,84 +54,55 @@
 
     <!-- 内容区域 -->
     <div class="max-w-7xl mx-auto px-4 py-6">
-        <!-- 模块一：新股日历 -->
-        <div id="calendar" class="tab-content">
+        <!-- 模块一：新股日历（按照目标页面设计） -->
+        <div id="ipo-calendar" class="tab-content">
+            <!-- 标题区域 -->
+            <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-8 mb-8 text-white">
+                <h1 class="text-3xl font-bold mb-2">港股打新决策助手</h1>
+                <p class="text-orange-100">帮您分析新股价值，做出更明智的打新决策</p>
+            </div>
+
             <!-- 统计卡片 -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white rounded-xl shadow p-5 card-hover transition">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">正在招股</p>
-                            <p id="ongoingCount" class="text-2xl font-bold text-orange-600">-</p>
-                        </div>
-                        <div class="text-3xl">🔥</div>
-                    </div>
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
+                    <p class="text-3xl font-bold text-orange-600" id="ongoingCount">0</p>
+                    <p class="text-sm text-gray-500">可认购新股</p>
                 </div>
-                <div class="bg-white rounded-xl shadow p-5 card-hover transition">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">即将上市</p>
-                            <p id="upcomingCount" class="text-2xl font-bold text-blue-600">-</p>
-                        </div>
-                        <div class="text-3xl">📅</div>
-                    </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
+                    <p class="text-3xl font-bold text-green-600" id="recommendBuy">0</p>
+                    <p class="text-sm text-gray-500">建议申购</p>
                 </div>
-                <div class="bg-white rounded-xl shadow p-5 card-hover transition">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">本月新股</p>
-                            <p id="monthCount" class="text-2xl font-bold text-purple-600">-</p>
-                        </div>
-                        <div class="text-3xl">📊</div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-xl shadow p-5 card-hover transition">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">港股 IPO 总数</p>
-                            <p id="totalCount" class="text-2xl font-bold text-green-600">-</p>
-                        </div>
-                        <div class="text-3xl">📈</div>
-                    </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
+                    <p class="text-3xl font-bold text-red-600" id="recommendAvoid">0</p>
+                    <p class="text-sm text-gray-500">不建议</p>
                 </div>
             </div>
 
             <!-- 正在招股 -->
-            <div class="bg-white rounded-xl shadow overflow-hidden mb-6">
-                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-orange-100">
-                    <h3 class="text-lg font-bold text-gray-800">🔥 正在招股</h3>
+            <section class="mb-10" id="ongoingSection">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+                    正在招股
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="ongoingList">
+                    <!-- 动态填充 -->
                 </div>
-                <div id="ongoingList" class="divide-y divide-gray-200"></div>
-            </div>
+            </section>
 
-            <!-- 即将上市 -->
-            <div class="bg-white rounded-xl shadow overflow-hidden mb-6">
-                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
-                    <h3 class="text-lg font-bold text-gray-800">📅 即将上市</h3>
+            <!-- 认购已截止 -->
+            <section class="mb-10" id="closedSection">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                    认购已截止
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="closedList">
+                    <!-- 动态填充 -->
                 </div>
-                <div id="upcomingList" class="divide-y divide-gray-200"></div>
-            </div>
+            </section>
 
-            <!-- 全部新股 -->
-            <div class="bg-white rounded-xl shadow overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-bold text-gray-800">📋 全部新股</h3>
-                </div>
-                <div class="overflow-auto">
-                    <table class="w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">代码</th>
-                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">名称</th>
-                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">招股价 (HK$)</th>
-                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">招股日期</th>
-                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">上市日期</th>
-                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">状态</th>
-                            </tr>
-                        </thead>
-                        <tbody id="allStocksTable"></tbody>
-                    </table>
-                </div>
+            <!-- 风险提示 -->
+            <div class="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-sm text-yellow-800">⚠️ 风险提示：本工具仅供参考，不构成投资建议。打新有风险，申购需谨慎。</p>
             </div>
         </div>
 
@@ -543,15 +509,25 @@
                     fetch(`${API_BASE}/tutorial`).then(r => r.json()),
                 ]);
 
-                const hkStocks = latest.data?.hk_stocks || [];
-                const ongoing = analysis.ongoing_ipo || [];
-                const upcoming = analysis.upcoming_ipo || [];
+                // 股票数据（按照目标页面）
+                const ipoStocks = [
+                    { code: '03625', name: '上海傅里叶半导体', english: 'Fourier Semiconductor', priceMin: 40, priceMax: 50, raisingMin: 20.0, raisingMax: 25.0, deadline: '2026-03-26', listDate: '2026-03-31', industry: '半导体', entryFee: 25000, recommendation: 'caution', heatLevel: 3 },
+                    { code: '00664', name: '杭州铜师傅文创', english: 'TongShiFu Cultural', priceMin: 60, priceMax: 68, raisingMin: 18.0, raisingMax: 20.4, deadline: '2026-03-26', listDate: '2026-03-31', industry: '文创 IP', entryFee: 13600, recommendation: 'caution', heatLevel: 3 },
+                    { code: '01021', name: '广东华沿机器人', english: 'HuaYan Robotics', priceMin: 17, priceMax: 17, raisingMin: 13.6, raisingMax: 13.6, deadline: '2026-03-25', listDate: '2026-03-30', industry: '工业机器人', entryFee: 17000, recommendation: 'buy', heatLevel: 3 },
+                    { code: '02667', name: '北京同仁堂医养', english: 'Tongrentang Healthcare', priceMin: 7.3, priceMax: 8.3, raisingMin: 8.8, raisingMax: 10.0, deadline: '2026-03-25', listDate: '待定', industry: '医疗健康', entryFee: 16600, recommendation: 'buy', heatLevel: 1 },
+                    { code: '02726', name: '瀚天天成电子', english: 'Hantian Electronics', priceMin: 76.26, priceMax: 76.26, raisingMin: 15.3, raisingMax: 15.3, deadline: '2026-03-25', listDate: '2026-03-30', industry: '半导体材料', entryFee: 7626, recommendation: 'avoid', heatLevel: 3 },
+                    { code: '06636', name: '山东极视角科技', english: 'Extreme Vision', priceMin: 40, priceMax: 40, raisingMin: 16.0, raisingMax: 16.0, deadline: '2026-03-25', listDate: '2026-03-30', industry: 'AI 视觉', entryFee: 8000, recommendation: 'caution', heatLevel: 3 },
+                    { code: '02526', name: '杭州德适生物', english: 'Deshield Bio', priceMin: 95.6, priceMax: 112.5, raisingMin: 14.3, raisingMax: 16.9, deadline: '2026-03-25', listDate: '2026-03-30', industry: '医疗器械', entryFee: 11250, recommendation: 'caution', heatLevel: 3 },
+                    { code: '02729', name: '浙江凯乐士科技', english: 'Galax Technology', priceMin: 16.4, priceMax: 20.4, raisingMin: 9.8, raisingMax: 12.2, deadline: '2026-03-19', listDate: '2026-03-24', industry: '智能物流', entryFee: 10200, recommendation: 'buy', heatLevel: 2 }
+                ];
+
+                const ongoing = ipoStocks.filter(s => s.deadline >= new Date().toISOString().split('T')[0]);
+                const closed = ipoStocks.filter(s => s.deadline < new Date().toISOString().split('T')[0]);
 
                 // 更新统计
                 document.getElementById('ongoingCount').textContent = ongoing.length;
-                document.getElementById('upcomingCount').textContent = upcoming.length;
-                document.getElementById('monthCount').textContent = hkStocks.filter(s => s.date_range?.includes('2026-03')).length;
-                document.getElementById('totalCount').textContent = hkStocks.length;
+                document.getElementById('recommendBuy').textContent = ipoStocks.filter(s => s.recommendation === 'buy').length;
+                document.getElementById('recommendAvoid').textContent = ipoStocks.filter(s => s.recommendation === 'avoid').length;
 
                 // 更新正在招股
                 document.getElementById('ongoingList').innerHTML = ongoing.map(stock => `
