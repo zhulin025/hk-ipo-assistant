@@ -1,0 +1,183 @@
+        <!-- 模块四：打新课程 -->
+        <div id="tutorial" class="tab-content hidden">
+            <!-- 教程子标签 -->
+            <div class="flex space-x-2 mb-6 overflow-auto">
+                <button onclick="showTutorialTab('intro')" class="tutorial-tab-btn px-4 py-2 rounded-lg bg-blue-500 text-white font-medium whitespace-nowrap" data-tab="intro">
+                    📖 新手入门
+                </button>
+                <button onclick="showTutorialTab('process')" class="tutorial-tab-btn px-4 py-2 rounded-lg bg-gray-100 text-gray-600 font-medium whitespace-nowrap hover:bg-gray-200" data-tab="process">
+                    🔄 申购流程
+                </button>
+                <button onclick="showTutorialTab('groups')" class="tutorial-tab-btn px-4 py-2 rounded-lg bg-gray-100 text-gray-600 font-medium whitespace-nowrap hover:bg-gray-200" data-tab="groups">
+                    💎 甲组 vs 乙组
+                </button>
+                <button onclick="showTutorialTab('margin')" class="tutorial-tab-btn px-4 py-2 rounded-lg bg-gray-100 text-gray-600 font-medium whitespace-nowrap hover:bg-gray-200" data-tab="margin">
+                    🚀 孖展详解
+                </button>
+                <button onclick="showTutorialTab('greenshoe')" class="tutorial-tab-btn px-4 py-2 rounded-lg bg-gray-100 text-gray-600 font-medium whitespace-nowrap hover:bg-gray-200" data-tab="greenshoe">
+                    👟 绿鞋机制
+                </button>
+                <button onclick="showTutorialTab('terms')" class="tutorial-tab-btn px-4 py-2 rounded-lg bg-gray-100 text-gray-600 font-medium whitespace-nowrap hover:bg-gray-200" data-tab="terms">
+                    📖 术语表
+                </button>
+            </div>
+
+            <!-- 新手入门 -->
+            <div id="intro" class="tutorial-tab-content">
+                <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg p-8 text-white mb-6">
+                    <h2 class="text-3xl font-bold mb-4">📖 什么是港股打新？</h2>
+                    <p class="text-lg opacity-90 mb-6">申购即将上市的新股，上市后卖出获利的投资方式。</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white/20 backdrop-blur rounded-lg p-4">
+                            <p class="text-3xl mb-2">💰</p>
+                            <p class="font-bold">新股溢价</p>
+                            <p class="text-sm opacity-80">上市初期通常有溢价</p>
+                        </div>
+                        <div class="bg-white/20 backdrop-blur rounded-lg p-4">
+                            <p class="text-3xl mb-2">🎯</p>
+                            <p class="font-bold">获得原始股</p>
+                            <p class="text-sm opacity-80">以发行价买入</p>
+                        </div>
+                        <div class="bg-white/20 backdrop-blur rounded-lg p-4">
+                            <p class="text-3xl mb-2">💸</p>
+                            <p class="font-bold">卖出获利</p>
+                            <p class="text-sm opacity-80">上市后赚取差价</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 申购流程 -->
+            <div id="process" class="tutorial-tab-content hidden">
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">🔄 完整申购流程</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">1</div>
+                            <div class="bg-blue-50 rounded-xl p-4 flex-1">
+                                <h4 class="font-bold text-blue-800 mb-2">T-7 日：招股开始</h4>
+                                <p class="text-sm text-blue-700">查看招股书 → 分析基本面 → 决定是否认购</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">2</div>
+                            <div class="bg-purple-50 rounded-xl p-4 flex-1">
+                                <h4 class="font-bold text-purple-800 mb-2">T-4 日：招股截止</h4>
+                                <p class="text-sm text-purple-700">选择现金/孖展 → 确定数量 → 支付认购费</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">3</div>
+                            <div class="bg-green-50 rounded-xl p-4 flex-1">
+                                <h4 class="font-bold text-green-800 mb-2">T-3 日：公布中签</h4>
+                                <p class="text-sm text-green-700">查看结果 → 未中签退款 → 中签股票到账</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">4</div>
+                            <div class="bg-yellow-50 rounded-xl p-4 flex-1">
+                                <h4 class="font-bold text-yellow-800 mb-2">T-2 日：暗盘交易</h4>
+                                <p class="text-sm text-yellow-700">16:15-18:30 → 可提前卖出锁定收益</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">5</div>
+                            <div class="bg-red-50 rounded-xl p-4 flex-1">
+                                <h4 class="font-bold text-red-800 mb-2">T 日：正式上市</h4>
+                                <p class="text-sm text-red-700">09:30 开盘 → 根据策略卖出</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 甲组 vs 乙组 -->
+            <div id="groups" class="tutorial-tab-content hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+                        <h3 class="text-2xl font-bold mb-4">💎 甲组（小户）</h3>
+                        <div class="space-y-3">
+                            <div class="bg-white/20 rounded-lg p-3">
+                                <p class="text-sm opacity-80">认购金额</p>
+                                <p class="text-xl font-bold">&lt;500 万港币</p>
+                            </div>
+                            <ul class="text-sm space-y-1">
+                                <li>✓ 一手必中机制</li>
+                                <li>✓ 适合散户</li>
+                                <li>✓ 资金门槛低</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
+                        <h3 class="text-2xl font-bold mb-4">🏦 乙组（大户）</h3>
+                        <div class="space-y-3">
+                            <div class="bg-white/20 rounded-lg p-3">
+                                <p class="text-sm opacity-80">认购金额</p>
+                                <p class="text-xl font-bold">&gt;500 万港币</p>
+                            </div>
+                            <ul class="text-sm space-y-1">
+                                <li>✓ 按比例分配</li>
+                                <li>✓ 适合机构</li>
+                                <li>✓ 中签更多</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 孖展详解 -->
+            <div id="margin" class="tutorial-tab-content hidden">
+                <div class="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg p-6 text-white mb-6">
+                    <h3 class="text-2xl font-bold mb-4">🚀 什么是孖展？</h3>
+                    <p class="text-lg opacity-90">融资认购，借钱打新，杠杆放大收益</p>
+                    <div class="bg-white/20 rounded-lg p-4 mt-4">
+                        <p>1 万本金 + 10 倍孖展 = 认购 10 万新股！</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h4 class="font-bold text-gray-800 mb-4">💰 成本计算（10 倍孖展认购 10 万）</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div><p class="text-gray-600">本金</p><p class="font-bold">10,000 港币</p></div>
+                        <div><p class="text-gray-600">借款</p><p class="font-bold">90,000 港币</p></div>
+                        <div><p class="text-gray-600">认购费</p><p class="font-bold">100 港币</p></div>
+                        <div><p class="text-gray-600">利息 (7 天)</p><p class="font-bold">117 港币</p></div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t">
+                        <p class="text-gray-600">总成本</p>
+                        <p class="text-2xl font-bold text-purple-600">217 港币</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 绿鞋机制 -->
+            <div id="greenshoe" class="tutorial-tab-content hidden">
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg p-6 text-white mb-6">
+                    <h3 class="text-2xl font-bold">👟 绿鞋机制</h3>
+                    <p class="text-lg opacity-90 mt-2">给新股股价买份「保险」，防止破发跌太惨</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-green-50 rounded-xl p-6 border-2 border-green-200">
+                        <h4 class="font-bold text-green-800 mb-4">📈 股价上涨</h4>
+                        <p class="text-sm mb-2">发行价 10 元 → 涨到 12 元</p>
+                        <p class="text-sm text-green-700">✅ 行使绿鞋，多发行股票</p>
+                        <p class="text-sm text-green-700">✅ 公司多融资</p>
+                        <p class="font-bold text-green-800 mt-3">🎉 三赢！</p>
+                    </div>
+                    <div class="bg-red-50 rounded-xl p-6 border-2 border-red-200">
+                        <h4 class="font-bold text-red-800 mb-4">📉 股价下跌</h4>
+                        <p class="text-sm mb-2">发行价 10 元 → 跌到 8 元</p>
+                        <p class="text-sm text-red-700">✅ 承销商买入托市</p>
+                        <p class="text-sm text-red-700">✅ 减少跌幅</p>
+                        <p class="font-bold text-red-800 mt-3">🛡️ 减少损失！</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 术语表 -->
+            <div id="terms" class="tutorial-tab-content hidden">
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">📖 常见术语表</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="glossary"></div>
+                </div>
+            </div>
+        </div>

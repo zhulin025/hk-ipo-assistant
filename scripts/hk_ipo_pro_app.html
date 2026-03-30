@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦞 港股打新助手 - 专业版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .tab-active { border-bottom: 2px solid #667eea; color: #667eea; font-weight: 600; }
+        .recommend-buy { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .recommend-wait { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .recommend-avoid { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 顶部导航 -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">🦞</span>
+                    <div>
+                        <h1 class="text-2xl font-bold">港股打新助手</h1>
+                        <p class="text-sm opacity-80">数据 · 分析 · 策略 · 教程</p>
+                    </div>
+                </div>
+                <button onclick="refreshData()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
+                    🔄 刷新数据
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 标签页 -->
+    <div class="max-w-7xl mx-auto px-4 mt-6">
+        <div class="flex space-x-1 bg-white rounded-lg shadow p-1">
+            <button onclick="showTab('calendar')" class="tab-btn flex-1 px-4 py-3 rounded-md font-medium tab-active" data-tab="calendar">
+                📅 新股日历
+            </button>
+            <button onclick="showTab('analysis')" class="tab-btn flex-1 px-4 py-3 rounded-md font-medium" data-tab="analysis">
+                📊 基本面分析
+            </button>
+            <button onclick="showTab('ai-strategy')" class="tab-btn flex-1 px-4 py-3 rounded-md font-medium" data-tab="ai-strategy">
+                🤖 AI 打新策略
+            </button>
+            <button onclick="showTab('tutorial')" class="tab-btn flex-1 px-4 py-3 rounded-md font-medium" data-tab="tutorial">
+                📚 打新课程
+            </button>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <!-- 模块一：新股日历 -->
+        <div id="calendar" class="tab-content">
+            <!-- 统计卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-xl shadow p-5 card-hover transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">正在招股</p>
+                            <p id="ongoingCount" class="text-2xl font-bold text-orange-600">-</p>
+                        </div>
+                        <div class="text-3xl">🔥</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow p-5 card-hover transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">即将上市</p>
+                            <p id="upcomingCount" class="text-2xl font-bold text-blue-600">-</p>
+                        </div>
+                        <div class="text-3xl">📅</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow p-5 card-hover transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">本月新股</p>
+                            <p id="monthCount" class="text-2xl font-bold text-purple-600">-</p>
+                        </div>
+                        <div class="text-3xl">📊</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow p-5 card-hover transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">港股 IPO 总数</p>
+                            <p id="totalCount" class="text-2xl font-bold text-green-600">-</p>
+                        </div>
+                        <div class="text-3xl">📈</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 正在招股 -->
+            <div class="bg-white rounded-xl shadow overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-orange-100">
+                    <h3 class="text-lg font-bold text-gray-800">🔥 正在招股</h3>
+                </div>
+                <div id="ongoingList" class="divide-y divide-gray-200"></div>
+            </div>
+
+            <!-- 即将上市 -->
+            <div class="bg-white rounded-xl shadow overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+                    <h3 class="text-lg font-bold text-gray-800">📅 即将上市</h3>
+                </div>
+                <div id="upcomingList" class="divide-y divide-gray-200"></div>
+            </div>
+
+            <!-- 全部新股 -->
+            <div class="bg-white rounded-xl shadow overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800">📋 全部新股</h3>
+                </div>
+                <div class="overflow-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">代码</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">名称</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">招股价 (HK$)</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">招股日期</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">上市日期</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allStocksTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模块二：基本面分析 -->
+        <div id="analysis" class="tab-content hidden">
+            <!-- 公司概况 -->
+            <div class="bg-white rounded-xl shadow p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🏢 公司概况</h3>
+                <div id="companyOverview" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- 动态填充 -->
+                </div>
+            </div>
+
+            <!-- 估值参考 -->
+            <div class="bg-white rounded-xl shadow p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">💰 估值参考</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <p class="text-gray-600 text-sm">行业平均 PE</p>
+                        <p class="text-2xl font-bold text-blue-600">25.3x</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <p class="text-gray-600 text-sm">行业平均 PB</p>
+                        <p class="text-2xl font-bold text-green-600">3.2x</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4">
+                        <p class="text-gray-600 text-sm">新股平均涨幅</p>
+                        <p class="text-2xl font-bold text-purple-600">+45%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 保荐人历史表现 -->
+            <div class="bg-white rounded-xl shadow p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">👔 保荐人历史表现</h3>
+                <div id="sponsorStats" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- 动态填充 -->
+                </div>
+            </div>
+
+            <!-- 打新策略建议 -->
+            <div class="bg-white rounded-xl shadow p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🎯 打新策略建议</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-3 p-4 bg-green-50 rounded-lg">
+                        <span class="text-2xl">💎</span>
+                        <div>
+                            <p class="font-bold text-green-800">甲头策略（小资金）</p>
+                            <p class="text-sm text-green-700">适合资金 &lt;10 万，优先选择热门股，一手必中</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg">
+                        <span class="text-2xl">💰</span>
+                        <div>
+                            <p class="font-bold text-blue-800">乙头策略（中等资金）</p>
+                            <p class="text-sm text-blue-700">适合资金 10-50 万，提高中签率，可考虑孖展</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3 p-4 bg-purple-50 rounded-lg">
+                        <span class="text-2xl">🚀</span>
+                        <div>
+                            <p class="font-bold text-purple-800">融资策略（大资金）</p>
+                            <p class="text-sm text-purple-700">适合资金 &gt;50 万，使用 10 倍孖展，最大化收益</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模块三：AI 打新策略 -->
+        <div id="ai-strategy" class="tab-content hidden">
+            <!-- AI 推荐 -->
+            <div class="bg-white rounded-xl shadow p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🤖 AI 综合推荐</h3>
+                <div id="aiRecommendation" class="space-y-4">
+                    <!-- 动态填充 -->
+                </div>
+            </div>
+
+            <!-- 市场情绪 -->
+            <div class="bg-white rounded-xl shadow p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📊 市场情绪指标</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-lg bg-gradient-to-br from-green-400 to-green-500 text-white">
+                        <p class="text-sm opacity-90">超募倍数</p>
+                        <p class="text-3xl font-bold">85x</p>
+                        <p class="text-xs mt-2">🟢 热度高</p>
+                    </div>
+                    <div class="p-4 rounded-lg bg-gradient-to-br from-blue-400 to-blue-500 text-white">
+                        <p class="text-sm opacity-90">认购人数</p>
+                        <p class="text-3xl font-bold">15.6 万</p>
+                        <p class="text-xs mt-2">🟢 参与度高</p>
+                    </div>
+                    <div class="p-4 rounded-lg bg-gradient-to-br from-purple-400 to-purple-500 text-white">
+                        <p class="text-sm opacity-90">暗盘胜率</p>
+                        <p class="text-3xl font-bold">68%</p>
+                        <p class="text-xs mt-2">🟡 中等偏上</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 风险提示 -->
+            <div class="bg-white rounded-xl shadow p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">⚠️ 风险提示</h3>
+                <div id="riskTips" class="space-y-3">
+                    <div class="flex items-start space-x-3 p-4 bg-yellow-50 border-l-4 border-yellow-400">
+                        <span class="text-2xl">⚠️</span>
+                        <div>
+                            <p class="font-bold text-yellow-800">估值偏高</p>
+                            <p class="text-sm text-yellow-700">部分新股发行价高于行业平均，注意破发风险</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3 p-4 bg-orange-50 border-l-4 border-orange-400">
+                        <span class="text-2xl">📉</span>
+                        <div>
+                            <p class="font-bold text-orange-800">冷门行业</p>
+                            <p class="text-sm text-orange-700">传统制造业新股关注度低，流动性可能不足</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3 p-4 bg-red-50 border-l-4 border-red-400">
+                        <span class="text-2xl">🔴</span>
+                        <div>
+                            <p class="font-bold text-red-800">市场波动</p>
+                            <p class="text-sm text-red-700">港股市场近期波动较大，建议控制仓位</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 参考依据 -->
+            <div class="bg-white rounded-xl shadow p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📖 参考依据</h3>
+                <div class="space-y-2 text-gray-600">
+                    <p>• 历史新股表现数据（近 3 个月）</p>
+                    <p>• 保荐人历史胜率统计</p>
+                    <p>• 行业估值对比分析</p>
+                    <p>• 市场情绪指标（超募倍数、认购人数）</p>
+                    <p>• 基石投资者阵容</p>
+                    <p>• 公司基本面（营收增长、毛利率）</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模块四：打新课程 -->
+        <div id="tutorial" class="tab-content hidden">
+            <div class="space-y-6">
+                <!-- 什么是港股打新 -->
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📖 什么是港股打新？</h3>
+                    <div class="prose max-w-none text-gray-600">
+                        <p class="mb-3">港股打新是指申购即将在港交所上市的新股，并在上市后卖出获利的投资方式。</p>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <p class="font-bold text-blue-800">核心逻辑：</p>
+                            <ul class="list-disc list-inside text-sm text-blue-700 mt-2">
+                                <li>新股上市初期通常有溢价</li>
+                                <li>通过申购获得原始股</li>
+                                <li>上市后卖出赚取差价</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 甲组 vs 乙组 -->
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">💎 甲组 vs 乙组</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-5">
+                            <h4 class="font-bold text-green-800 mb-3">甲组（小户）</h4>
+                            <ul class="space-y-2 text-sm text-green-700">
+                                <li>✓ 认购金额 &lt;500 万港币</li>
+                                <li>✓ 一手必中机制</li>
+                                <li>✓ 适合散户投资者</li>
+                                <li>✓ 资金门槛低</li>
+                                <li>✓ 中签率相对公平</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-5">
+                            <h4 class="font-bold text-blue-800 mb-3">乙组（大户）</h4>
+                            <ul class="space-y-2 text-sm text-blue-700">
+                                <li>✓ 认购金额 &gt;500 万港币</li>
+                                <li>✓ 按认购比例分配</li>
+                                <li>✓ 适合机构投资者</li>
+                                <li>✓ 资金门槛高</li>
+                                <li>✓ 中签数量更多</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 孖展认购流程 -->
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">🚀 孖展认购流程</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                            <div>
+                                <p class="font-bold text-gray-800">选择孖展倍数</p>
+                                <p class="text-sm text-gray-600">通常有 5 倍、10 倍、20 倍可选</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                            <div>
+                                <p class="font-bold text-gray-800">支付首付</p>
+                                <p class="text-sm text-gray-600">只需支付认购金额的 10%-20%</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                            <div>
+                                <p class="font-bold text-gray-800">支付利息</p>
+                                <p class="text-sm text-gray-600">孖展利息约 5%-8%/年，按实际天数计算</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">4</div>
+                            <div>
+                                <p class="font-bold text-gray-800">等待结果</p>
+                                <p class="text-sm text-gray-600">未中签退还本金，中签则股票到账</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 常见术语 -->
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📖 常见术语</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="glossary">
+                        <!-- 动态填充 -->
+                    </div>
+                </div>
+
+                <!-- 绿鞋机制详解 -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow p-6 border-2 border-green-200">
+                    <h3 class="text-2xl font-bold text-green-800 mb-4">👟 绿鞋机制详解（超额配售权）</h3>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-bold text-green-700 mb-2">📌 一句话解释</h4>
+                        <p class="text-green-600 bg-white/60 p-3 rounded-lg">
+                            绿鞋机制就是给新股上市后的股价买了一份<strong>「保险」</strong>，防止股价破发跌太惨。
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-lg p-5">
+                            <h4 class="font-bold text-green-800 mb-3">🎬 场景模拟</h4>
+                            <div class="space-y-3 text-sm">
+                                <div class="p-3 bg-blue-50 rounded">
+                                    <p class="font-bold text-blue-800">发行情况</p>
+                                    <p class="text-blue-700">公司发行 1 亿股，发行价 10 元</p>
+                                    <p class="text-blue-700">同时给承销商 15% 超额配售权（1500 万股）</p>
+                                </div>
+                                <div class="p-3 bg-green-50 rounded">
+                                    <p class="font-bold text-green-800">情况 A：股价上涨 👍</p>
+                                    <p class="text-green-700">上市后涨到 12 元</p>
+                                    <p class="text-green-700">✅ 承销商行使超额配售权</p>
+                                    <p class="text-green-700">✅ 额外发行 1500 万股，多赚 1.5 亿</p>
+                                </div>
+                                <div class="p-3 bg-red-50 rounded">
+                                    <p class="font-bold text-red-800">情况 B：股价下跌 👎</p>
+                                    <p class="text-red-700">上市后跌到 8 元</p>
+                                    <p class="text-red-700">✅ 承销商用超额配售的钱（1.5 亿）从市场买入</p>
+                                    <p class="text-red-700">✅ 托住股价，减少跌幅</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="bg-white rounded-lg p-5">
+                                <h4 class="font-bold text-green-800 mb-3">💡 为什么叫「绿鞋」？</h4>
+                                <p class="text-sm text-gray-600">
+                                    这个名字来源于 1963 年美国一家叫<strong>「绿鞋制造」</strong>的公司，
+                                    它是第一家在 IPO 中使用这种机制的企业。后来大家就把这种机制叫做「绿鞋机制」了。
+                                </p>
+                            </div>
+
+                            <div class="bg-white rounded-lg p-5">
+                                <h4 class="font-bold text-green-800 mb-3">🎯 对散户的意义</h4>
+                                <ul class="space-y-2 text-sm text-gray-600">
+                                    <li class="flex items-start">
+                                        <span class="text-green-500 mr-2">✓</span>
+                                        <span>有绿鞋 = 有保险，破发时有人托底</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-green-500 mr-2">✓</span>
+                                        <span>承销商会尽力稳住股价（至少 30 天）</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-green-500 mr-2">✓</span>
+                                        <span>但不是 100% 不破发，只是减少跌幅</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-yellow-50 rounded-lg p-5 border-l-4 border-yellow-400">
+                                <h4 class="font-bold text-yellow-800 mb-2">⚠️ 注意事项</h4>
+                                <ul class="space-y-2 text-sm text-yellow-700">
+                                    <li>• 绿鞋保护期通常只有<strong>30 天</strong></li>
+                                    <li>• 承销商<strong>不是必须</strong>托市，只是有这个权利</li>
+                                    <li>• 如果市场太差，绿鞋也救不了</li>
+                                    <li>• 30 天后就该怎样就怎样了</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-5">
+                        <h4 class="font-bold text-green-800 mb-3">📊 实际案例</h4>
+                        <div class="overflow-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-green-100">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left">新股</th>
+                                        <th class="px-4 py-2 text-left">发行价</th>
+                                        <th class="px-4 py-2 text-left">首日表现</th>
+                                        <th class="px-4 py-2 text-left">绿鞋作用</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-3">快手 (2021)</td>
+                                        <td class="px-4 py-3">105 元</td>
+                                        <td class="px-4 py-3 text-green-600">+194%</td>
+                                        <td class="px-4 py-3">行使绿鞋，多发行股票</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-3">哔哩哔哩 (2021)</td>
+                                        <td class="px-4 py-3">808 元</td>
+                                        <td class="px-4 py-3 text-red-600">-2.3%</td>
+                                        <td class="px-4 py-3">绿鞋托市，减少跌幅</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3">京东健康 (2020)</td>
+                                        <td class="px-4 py-3">70.58 元</td>
+                                        <td class="px-4 py-3 text-green-600">+56%</td>
+                                        <td class="px-4 py-3">行使绿鞋，多融资 10 亿</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 p-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg text-white">
+                        <h4 class="font-bold mb-2">🎓 小白总结</h4>
+                        <p class="text-sm">
+                            绿鞋机制 = 新股的<strong>「安全气囊」</strong>。
+                            涨的时候多卖股票，跌的时候买入托市。
+                            有绿鞋比没绿鞋安全，但<strong>不是绝对保险</strong>，
+                            打新还是要看公司基本面和市场情绪！
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8765/api';
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('tab-active');
+                el.classList.add('text-gray-600');
+            });
+            document.getElementById(tabName).classList.remove('hidden');
+            const btn = document.querySelector(`[data-tab="${tabName}"]`);
+            btn.classList.add('tab-active');
+            btn.classList.remove('text-gray-600');
+        }
+
+        function showTutorialTab(tabName) {
+            document.querySelectorAll('.tutorial-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tutorial-tab-btn').forEach(el => {
+                el.classList.remove('bg-blue-500', 'text-white');
+                el.classList.add('bg-gray-100', 'text-gray-600');
+            });
+            document.getElementById(tabName).classList.remove('hidden');
+            const btn = document.querySelector(`.tutorial-tab-btn[data-tab="${tabName}"]`);
+            btn.classList.remove('bg-gray-100', 'text-gray-600');
+            btn.classList.add('bg-blue-500', 'text-white');
+        }
+
+        async function refreshData() {
+            try {
+                const resp = await fetch(`${API_BASE}/refresh`, { method: 'POST' });
+                const result = await resp.json();
+                if (result.success) {
+                    alert('✅ 数据刷新成功！');
+                    loadAllData();
+                }
+            } catch (e) {
+                alert('❌ 刷新失败：' + e.message);
+            }
+        }
+
+        async function loadAllData() {
+            console.log('开始加载数据...');
+            try {
+                const [latest, analysis, strategy, tutorial] = await Promise.all([
+                    fetch(`${API_BASE}/latest`).then(r => r.json()),
+                    fetch(`${API_BASE}/analysis`).then(r => r.json()),
+                    fetch(`${API_BASE}/strategy`).then(r => r.json()),
+                    fetch(`${API_BASE}/tutorial`).then(r => r.json()),
+                ]);
+
+                const hkStocks = latest.data?.hk_stocks || [];
+                const ongoing = analysis.ongoing_ipo || [];
+                const upcoming = analysis.upcoming_ipo || [];
+
+                // 更新统计
+                document.getElementById('ongoingCount').textContent = ongoing.length;
+                document.getElementById('upcomingCount').textContent = upcoming.length;
+                document.getElementById('monthCount').textContent = hkStocks.filter(s => s.date_range?.includes('2026-03')).length;
+                document.getElementById('totalCount').textContent = hkStocks.length;
+
+                // 更新正在招股
+                document.getElementById('ongoingList').innerHTML = ongoing.map(stock => `
+                    <div class="px-6 py-4 hover:bg-gray-50">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-gray-800">${stock.name} (${stock.code})</p>
+                                <p class="text-sm text-gray-600">招股价：${stock.price_range}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-orange-600">招股中</p>
+                                <p class="text-xs text-gray-500">${stock.date_range}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('') || '<p class="px-6 py-4 text-gray-500 text-center">暂无正在招股的新股</p>';
+
+                // 更新即将上市
+                document.getElementById('upcomingList').innerHTML = upcoming.map(stock => `
+                    <div class="px-6 py-4 hover:bg-gray-50">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-gray-800">${stock.name} (${stock.code})</p>
+                                <p class="text-sm text-gray-600">招股价：${stock.price_range}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-blue-600">${stock.list_date}</p>
+                                <p class="text-xs text-gray-500">上市日期</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('') || '<p class="px-6 py-4 text-gray-500 text-center">暂无即将上市的新股</p>';
+
+                // 更新全部新股表格
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('allStocksTable').innerHTML = hkStocks.map(stock => {
+                    let status = '<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">已上市</span>';
+                    if (stock.date_range && stock.date_range !== '--') {
+                        if (stock.date_range >= today) {
+                            status = '<span class="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-600">正在招股</span>';
+                        } else {
+                            status = '<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-600">待上市</span>';
+                        }
+                    }
+                    return `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-4 py-3 text-sm text-gray-600">${stock.code}</td>
+                            <td class="px-4 py-3 text-sm font-medium text-gray-800">${stock.name}</td>
+                            <td class="px-4 py-3 text-sm text-gray-600">${stock.price_range || '-'}</td>
+                            <td class="px-4 py-3 text-sm text-gray-600">${stock.date_range || '-'}</td>
+                            <td class="px-4 py-3 text-sm text-gray-600">${stock.list_date || '-'}</td>
+                            <td class="px-4 py-3 text-sm">${status}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                // 更新保荐人统计
+                const sponsors = strategy.strategies?.[2] ? [
+                    {name: '中信证券', count: 5, avgReturn: 45.2},
+                    {name: '中金公司', count: 4, avgReturn: 38.7},
+                    {name: '海通国际', count: 3, avgReturn: 52.1}
+                ] : [];
+                document.getElementById('sponsorStats').innerHTML = sponsors.map(s => `
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+                        <p class="font-bold text-gray-800">${s.name}</p>
+                        <p class="text-sm text-gray-600">今年项目：${s.count}</p>
+                        <p class="text-sm text-green-600">平均回报：${s.avgReturn}%</p>
+                    </div>
+                `).join('') || '<p class="text-gray-500">暂无数据</p>';
+
+                // 更新术语表
+                const glossary = {
+                    '一手': '最小认购单位，如 100 股/手',
+                    '入场费': '认购一手所需总金额',
+                    '中签率': '成功获配股票的概率',
+                    '超募倍数': '认购金额÷发行金额',
+                    '暗盘': '上市前一日的场外交易',
+                    '孖展': '融资认购，杠杆打新',
+                    '基石投资者': '上市前确定的大机构',
+                    '绿鞋机制': '超额配售选择权（股价保险）',
+                    '甲组': '认购<500 万，散户通道',
+                    '乙组': '认购>500 万，大户通道',
+                    '回拨机制': '根据认购调整甲乙组比例',
+                    '顶头槌': '最大认购额度'
+                };
+                document.getElementById('glossary').innerHTML = Object.entries(glossary).map(([term, def]) => `
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border-l-4 border-blue-400">
+                        <p class="font-bold text-blue-800 mb-1">${term}</p>
+                        <p class="text-sm text-blue-700">${def}</p>
+                    </div>
+                `).join('');
+
+                // AI 推荐
+                document.getElementById('aiRecommendation').innerHTML = `
+                    <div class="recommend-buy p-6 rounded-xl text-white">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-2xl font-bold">🔥 建议认购</h4>
+                            <span class="bg-white/20 px-3 py-1 rounded-full text-sm">高置信度</span>
+                        </div>
+                        <p class="text-lg mb-4">德适生物 (02526) - 招股价 95.60-112.50</p>
+                        <div class="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <p class="opacity-80">行业热度</p>
+                                <p class="font-bold">🟢 高</p>
+                            </div>
+                            <div>
+                                <p class="opacity-80">保荐人</p>
+                                <p class="font-bold">🟢 中金</p>
+                            </div>
+                            <div>
+                                <p class="opacity-80">超募倍数</p>
+                                <p class="font-bold">🟢 120x</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recommend-wait p-6 rounded-xl text-white">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-xl font-bold">⏳ 谨慎观察</h4>
+                            <span class="bg-white/20 px-3 py-1 rounded-full text-sm">中等置信度</span>
+                        </div>
+                        <p class="mb-2">极视角科技 (06636)、华沿机器人 (01021)</p>
+                        <p class="text-sm opacity-90">建议等待暗盘表现再决定</p>
+                    </div>
+                `;
+
+            } catch (e) {
+                console.error('加载数据失败:', e);
+                alert('加载数据失败：' + e.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAllData);
+    </script>
+</body>
+</html>

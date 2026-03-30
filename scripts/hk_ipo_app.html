@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦞 港股打新助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 顶部导航 -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">🦞</span>
+                    <div>
+                        <h1 class="text-2xl font-bold">港股打新助手</h1>
+                        <p class="text-sm opacity-80">数据 · 策略 · 教程</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="refreshData()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
+                        🔄 刷新数据
+                    </button>
+                    <span id="lastUpdate" class="text-sm opacity-80"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 标签页 -->
+    <div class="max-w-7xl mx-auto px-4 mt-6">
+        <div class="flex space-x-2 border-b border-gray-200">
+            <button onclick="showTab('overview')" class="tab-btn px-6 py-3 font-medium border-b-2 border-blue-500 text-blue-600" data-tab="overview">
+                📊 市场概览
+            </button>
+            <button onclick="showTab('analysis')" class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent text-gray-600 hover:text-gray-800" data-tab="analysis">
+                📈 数据分析
+            </button>
+            <button onclick="showTab('strategy')" class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent text-gray-600 hover:text-gray-800" data-tab="strategy">
+                🎯 打新策略
+            </button>
+            <button onclick="showTab('tutorial')" class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent text-gray-600 hover:text-gray-800" data-tab="tutorial">
+                📚 新手教程
+            </button>
+            <button onclick="showTab('reminders')" class="tab-btn px-6 py-3 font-medium border-b-2 border-transparent text-gray-600 hover:text-gray-800" data-tab="reminders">
+                ⏰ 提醒事项
+            </button>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <!-- 市场概览 -->
+        <div id="overview" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-xl shadow p-6 card-hover transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">新股总数</p>
+                            <p id="totalStocks" class="text-3xl font-bold text-gray-800">-</p>
+                        </div>
+                        <div class="text-4xl">📊</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow p-6 card-hover transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">即将上市</p>
+                            <p id="avgChange" class="text-3xl font-bold text-blue-600">-</p>
+                        </div>
+                        <div class="text-4xl">📅</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow p-6 card-hover transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">正在招股</p>
+                            <p id="maxGain" class="text-3xl font-bold text-orange-600">-</p>
+                        </div>
+                        <div class="text-4xl">🔥</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow p-6 card-hover transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">港股 IPO 总数</p>
+                            <p id="avgWinning" class="text-3xl font-bold text-purple-600">-</p>
+                        </div>
+                        <div class="text-4xl">📊</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- 新股列表 -->
+                <div class="bg-white rounded-xl shadow overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-800">📋 新股列表</h3>
+                    </div>
+                    <div class="overflow-auto max-h-96">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">代码</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">名称</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">招股价</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">招股日期</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">上市日期</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stocksTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 即将上市 -->
+                <div class="bg-white rounded-xl shadow overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-800">📅 即将上市</h3>
+                    </div>
+                    <div id="upcomingList" class="divide-y divide-gray-200"></div>
+                </div>
+            </div>
+
+            <!-- 最新资讯 -->
+            <div class="bg-white rounded-xl shadow overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800">📰 最新资讯</h3>
+                </div>
+                <div id="newsList" class="divide-y divide-gray-200"></div>
+            </div>
+        </div>
+
+        <!-- 数据分析 -->
+        <div id="analysis" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">📈 历史趋势</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">🏭 行业分布</h3>
+                    <canvas id="industryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">🏆 保荐人统计</h3>
+                <div id="sponsorStats" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+            </div>
+        </div>
+
+        <!-- 打新策略 -->
+        <div id="strategy" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow p-6 text-white">
+                    <h3 class="text-xl font-bold mb-3">📊 基本面策略</h3>
+                    <p class="opacity-90 mb-4">选择业绩好、行业前景佳的股票</p>
+                    <ul class="space-y-2 text-sm">
+                        <li>✓ 营收增长率 > 30%</li>
+                        <li>✓ 毛利率 > 40%</li>
+                        <li>✓ 行业排名前 3</li>
+                        <li>✓ 有知名机构投资</li>
+                    </ul>
+                    <div class="mt-4 pt-4 border-t border-white/20">
+                        <div class="flex justify-between">
+                            <span>胜率：<span class="font-bold">65%</span></span>
+                            <span>平均回报：<span class="font-bold">45%</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow p-6 text-white">
+                    <h3 class="text-xl font-bold mb-3">🔥 热度策略</h3>
+                    <p class="opacity-90 mb-4">跟随市场热度，选择超募倍数高的股票</p>
+                    <ul class="space-y-2 text-sm">
+                        <li>✓ 超募倍数 > 50 倍</li>
+                        <li>✓ 认购人数 > 10 万</li>
+                        <li>✓ 一手必中</li>
+                        <li>✓ 有基石投资者</li>
+                    </ul>
+                    <div class="mt-4 pt-4 border-t border-white/20">
+                        <div class="flex justify-between">
+                            <span>胜率：<span class="font-bold">58%</span></span>
+                            <span>平均回报：<span class="font-bold">35%</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow p-6 text-white">
+                    <h3 class="text-xl font-bold mb-3">👔 保荐人策略</h3>
+                    <p class="opacity-90 mb-4">跟踪历史表现好的保荐人</p>
+                    <ul class="space-y-2 text-sm">
+                        <li>✓ 保荐人历史胜率 > 60%</li>
+                        <li>✓ 近 3 个月表现</li>
+                        <li>✓ 同一保荐人连续项目</li>
+                    </ul>
+                    <div class="mt-4 pt-4 border-t border-white/20">
+                        <div class="flex justify-between">
+                            <span>胜率：<span class="font-bold">62%</span></span>
+                            <span>平均回报：<span class="font-bold">42%</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow p-6 text-white">
+                    <h3 class="text-xl font-bold mb-3">🔄 行业轮动策略</h3>
+                    <p class="opacity-90 mb-4">根据市场轮动选择热门行业</p>
+                    <ul class="space-y-2 text-sm">
+                        <li>✓ 当前热门行业</li>
+                        <li>✓ 政策支持方向</li>
+                        <li>✓ 行业估值水平</li>
+                    </ul>
+                    <div class="mt-4 pt-4 border-t border-white/20">
+                        <div class="flex justify-between">
+                            <span>胜率：<span class="font-bold">55%</span></span>
+                            <span>平均回报：<span class="font-bold">38%</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-red-50 border border-red-200 rounded-xl p-6">
+                <h3 class="text-lg font-bold text-red-800 mb-3">⚠️ 风险提示</h3>
+                <ul class="space-y-2 text-red-700">
+                    <li>• 港股打新有破发风险，请谨慎参与</li>
+                    <li>• 不要 All-in 单只股票，分散投资</li>
+                    <li>• 关注暗盘表现，及时止盈止损</li>
+                    <li>• 市场情绪变化快，不要盲目追高</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 新手教程 -->
+        <div id="tutorial" class="tab-content hidden">
+            <div class="space-y-6">
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">🎓 港股打新入门教程</h3>
+                    
+                    <div class="space-y-6">
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <h4 class="font-bold text-lg text-gray-800 mb-2">第一步：开户准备</h4>
+                            <ul class="space-y-2 text-gray-600">
+                                <li>• 选择港股券商（富途、老虎、辉立等）</li>
+                                <li>• 完成开户和入金（建议至少 5 万港币）</li>
+                                <li>• 开通港股打新权限</li>
+                                <li>• 了解券商收费标准（认购费、佣金等）</li>
+                            </ul>
+                        </div>
+
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h4 class="font-bold text-lg text-gray-800 mb-2">第二步：选股分析</h4>
+                            <ul class="space-y-2 text-gray-600">
+                                <li>• 阅读招股书（港交所披露易）</li>
+                                <li>• 分析基本面（营收、利润、行业地位）</li>
+                                <li>• 查看保荐人历史表现</li>
+                                <li>• 关注市场热度（超募倍数）</li>
+                                <li>• 参考机构研报和分析师观点</li>
+                            </ul>
+                        </div>
+
+                        <div class="border-l-4 border-yellow-500 pl-4">
+                            <h4 class="font-bold text-lg text-gray-800 mb-2">第三步：申购操作</h4>
+                            <ul class="space-y-2 text-gray-600">
+                                <li>• 确定申购数量（考虑中签率）</li>
+                                <li>• 选择是否融资（孖展）</li>
+                                <li>• 在截止日前提交申购</li>
+                                <li>• 支付认购费用</li>
+                            </ul>
+                        </div>
+
+                        <div class="border-l-4 border-purple-500 pl-4">
+                            <h4 class="font-bold text-lg text-gray-800 mb-2">第四步：等待结果</h4>
+                            <ul class="space-y-2 text-gray-600">
+                                <li>• 关注公布中签日期</li>
+                                <li>• 查看中签结果</li>
+                                <li>• 未中签资金退回</li>
+                                <li>• 准备上市首日操作</li>
+                            </ul>
+                        </div>
+
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <h4 class="font-bold text-lg text-gray-800 mb-2">第五步：上市交易</h4>
+                            <ul class="space-y-2 text-gray-600">
+                                <li>• 关注暗盘表现（上市前一日）</li>
+                                <li>• 制定卖出策略（止盈/止损点）</li>
+                                <li>• 上市首日及时操作</li>
+                                <li>• 记录交易结果用于复盘</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📖 术语解释</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="glossary"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 提醒事项 -->
+        <div id="reminders" class="tab-content hidden">
+            <div class="bg-white rounded-xl shadow p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">⏰ 提醒事项</h3>
+                <div id="remindersList" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8765/api';
+        let trendChartInstance = null;
+        let industryChartInstance = null;
+
+        // 标签页切换
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('border-blue-500', 'text-blue-600');
+                el.classList.add('border-transparent', 'text-gray-600');
+            });
+            document.getElementById(tabName).classList.remove('hidden');
+            const btn = document.querySelector(`[data-tab="${tabName}"]`);
+            btn.classList.remove('border-transparent', 'text-gray-600');
+            btn.classList.add('border-blue-500', 'text-blue-600');
+        }
+
+        // 刷新数据
+        async function refreshData() {
+            try {
+                const resp = await fetch(`${API_BASE}/refresh`, { method: 'POST' });
+                const result = await resp.json();
+                if (result.success) {
+                    alert('✅ 数据刷新成功！');
+                    loadAllData();
+                } else {
+                    alert('❌ 刷新失败：' + result.message);
+                }
+            } catch (e) {
+                alert('❌ 刷新失败：' + e.message);
+            }
+        }
+
+        // 加载所有数据
+        async function loadAllData() {
+            console.log('开始加载数据，API_BASE:', API_BASE);
+            try {
+                // 逐个测试 API
+                console.log('测试 /api/latest...');
+                const latestResp = await fetch(`${API_BASE}/latest`);
+                console.log('latest 状态:', latestResp.status);
+                const latest = await latestResp.json();
+                console.log('latest 数据:', latest);
+
+                console.log('测试 /api/analysis...');
+                const analysisResp = await fetch(`${API_BASE}/analysis`);
+                console.log('analysis 状态:', analysisResp.status);
+                const analysis = await analysisResp.json();
+                console.log('analysis 数据:', analysis);
+
+                console.log('测试 /api/strategy...');
+                const strategyResp = await fetch(`${API_BASE}/strategy`);
+                const strategy = await strategyResp.json();
+
+                console.log('测试 /api/tutorial...');
+                const tutorialResp = await fetch(`${API_BASE}/tutorial`);
+                const tutorial = await tutorialResp.json();
+
+                // 先定义 hkStocks
+                const hkStocks = latest.data?.hk_stocks || [];
+                console.log('港股数量:', hkStocks.length);
+
+                // 更新概览数据
+                const overview = analysis.market_overview || {};
+                document.getElementById('totalStocks').textContent = overview.total_stocks || 0;
+                document.getElementById('avgChange').textContent = overview.upcoming_count || 0;
+                document.getElementById('maxGain').textContent = overview.ongoing_count || 0;
+                document.getElementById('avgWinning').textContent = hkStocks.length || 0;
+                document.getElementById('lastUpdate').textContent = '更新于：' + new Date().toLocaleTimeString();
+
+                // 更新股票列表
+                const stocksTable = document.getElementById('stocksTable');
+                stocksTable.innerHTML = hkStocks.slice(0, 20).map(stock => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm text-gray-600">${stock.code}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-800">${stock.name}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${stock.price_range || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${stock.date_range || '-'}</td>
+                        <td class="px-4 py-3 text-sm ${stock.list_date && stock.list_date !== '--' ? 'text-blue-600 font-medium' : 'text-gray-400'}">
+                            ${stock.list_date || '-'}
+                        </td>
+                    </tr>
+                `).join('');
+
+                // 更新即将上市
+                const upcoming = analysis.upcoming_ipo || [];
+                document.getElementById('upcomingList').innerHTML = upcoming.map(stock => `
+                    <div class="px-6 py-4 hover:bg-gray-50">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-medium text-gray-800">${stock.name} (${stock.code})</p>
+                                <p class="text-sm text-gray-500">发行价：${stock.issue_price}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-blue-600">${stock.list_date}</p>
+                                <p class="text-xs text-gray-500">上市日期</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('') || '<p class="px-6 py-4 text-gray-500">暂无即将上市新股</p>';
+
+                // 更新资讯
+                const news = latest.data?.laohu8 || [];
+                document.getElementById('newsList').innerHTML = news.slice(0, 10).map(item => `
+                    <div class="px-6 py-4 hover:bg-gray-50">
+                        <a href="${item.link}" target="_blank" class="text-blue-600 hover:underline">
+                            ${item.title}
+                        </a>
+                    </div>
+                `).join('');
+
+                // 更新图表
+                updateCharts(analysis);
+
+                // 更新保荐人统计
+                const sponsors = analysis.sponsor_stats?.top_sponsors || [];
+                document.getElementById('sponsorStats').innerHTML = sponsors.map(s => `
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+                        <p class="font-bold text-gray-800">${s.name}</p>
+                        <p class="text-sm text-gray-600">项目数：${s.count}</p>
+                        <p class="text-sm text-green-600">平均回报：${s.avg_return}%</p>
+                    </div>
+                `).join('') || '<p class="text-gray-500">暂无数据</p>';
+
+                // 更新策略
+                const strategies = strategy.strategies || [];
+                // 策略已在 HTML 中硬编码，这里可以动态更新
+
+                // 更新教程
+                const glossary = tutorial.tutorial?.glossary || {};
+                document.getElementById('glossary').innerHTML = Object.entries(glossary).map(([term, def]) => `
+                    <div class="border-l-4 border-blue-400 pl-3">
+                        <p class="font-bold text-gray-800">${term}</p>
+                        <p class="text-sm text-gray-600">${def}</p>
+                    </div>
+                `).join('');
+
+                // 更新提醒
+                const reminders = analysis.reminders || [];
+                document.getElementById('remindersList').innerHTML = reminders.map(r => `
+                    <div class="flex items-start space-x-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <span class="text-2xl">⏰</span>
+                        <div>
+                            <p class="font-medium text-gray-800">${r.message}</p>
+                            <p class="text-sm text-gray-500">${r.date}</p>
+                        </div>
+                    </div>
+                `).join('') || '<p class="text-gray-500">暂无提醒事项</p>';
+
+            } catch (e) {
+                console.error('加载数据失败:', e);
+                const errorMsg = `加载数据失败：${e.message}\n\n请检查:\n1. API 服务是否启动\n2. 打开浏览器控制台查看详细错误\n3. 访问 http://localhost:8765/docs 测试 API`;
+                alert(errorMsg);
+            }
+        }
+
+        // 更新图表
+        function updateCharts(analysis) {
+            // 历史趋势图
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            const trendData = analysis.historical_trend || [];
+            
+            if (trendChartInstance) trendChartInstance.destroy();
+            trendChartInstance = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: trendData.map(d => d.date.slice(4, 8)),
+                    datasets: [{
+                        label: '平均涨跌幅 (%)',
+                        data: trendData.map(d => d.avg_change_pct || 0),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: true } },
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+
+            // 行业分布图
+            const industryCtx = document.getElementById('industryChart').getContext('2d');
+            const industryData = analysis.industry_distribution || {};
+            
+            if (industryChartInstance) industryChartInstance.destroy();
+            industryChartInstance = new Chart(industryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(industryData),
+                    datasets: [{
+                        data: Object.values(industryData),
+                        backgroundColor: [
+                            '#667eea', '#764ba2', '#f093fb', '#f5576c',
+                            '#4facfe', '#43e97b', '#fa709a', '#fee140'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', loadAllData);
+    </script>
+</body>
+</html>
