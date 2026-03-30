@@ -2,22 +2,22 @@
   "version": 2,
   "builds": [
     {
-      "src": "scripts/hk_ipo_api.py",
+      "src": "api.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "scripts/hk_ipo_api.py"
+      "dest": "api.py"
     },
     {
       "src": "/",
-      "dest": "scripts/hk_ipo_pro_app.html"
+      "dest": "index.html"
     },
     {
       "src": "/(.*)",
-      "dest": "scripts/$1"
+      "dest": "$1"
     }
   ]
 }
