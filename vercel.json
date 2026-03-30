@@ -1,14 +1,9 @@
 {
   "version": 2,
-  "name": "hk-ipo-assistant",
   "builds": [
     {
       "src": "scripts/hk_ipo_api.py",
       "use": "@vercel/python"
-    },
-    {
-      "src": "scripts/*.html",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -17,15 +12,12 @@
       "dest": "scripts/hk_ipo_api.py"
     },
     {
-      "src": "/(.*)",
-      "dest": "scripts/$1"
-    },
-    {
       "src": "/",
       "dest": "scripts/hk_ipo_pro_app.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "scripts/$1"
     }
-  ],
-  "env": {
-    "PYTHON_VERSION": "3.9"
-  }
+  ]
 }
