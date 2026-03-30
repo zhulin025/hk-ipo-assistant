@@ -70,10 +70,18 @@ def filter_hk_stocks(data):
 @app.get("/")
 async def root():
     """返回首页"""
-    index_file = Path(__file__).parent / "ipo_calendar.html"
+    index_file = Path(__file__).parent / "hk_ipo_pro_app.html"
     if index_file.exists():
         return FileResponse(str(index_file))
     return {"message": "港股打新 API", "docs": "/docs"}
+
+@app.get("/calendar")
+async def calendar():
+    """新股日历页面"""
+    calendar_file = Path(__file__).parent / "ipo_calendar.html"
+    if calendar_file.exists():
+        return FileResponse(str(calendar_file))
+    return {"message": "新股日历页面"}
 
 
 @app.get("/api/latest")

@@ -27,9 +27,14 @@
                         <p class="text-sm opacity-80">数据 · 分析 · 策略 · 教程</p>
                     </div>
                 </div>
-                <button onclick="refreshData()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
-                    🔄 刷新数据
-                </button>
+                <div class="flex items-center space-x-4">
+                    <a href="/calendar" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition font-medium">
+                        📅 新股日历（简化版）
+                    </a>
+                    <button onclick="refreshData()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
+                        🔄 刷新数据
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
@@ -632,12 +637,15 @@
                     '回拨机制': '根据认购调整甲乙组比例',
                     '顶头槌': '最大认购额度'
                 };
-                document.getElementById('glossary').innerHTML = Object.entries(glossary).map(([term, def]) => `
-                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border-l-4 border-blue-400">
-                        <p class="font-bold text-blue-800 mb-1">${term}</p>
-                        <p class="text-sm text-blue-700">${def}</p>
-                    </div>
-                `).join('');
+                const glossaryEl = document.getElementById('glossary');
+                if (glossaryEl) {
+                    glossaryEl.innerHTML = Object.entries(glossary).map(([term, def]) => `
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border-l-4 border-blue-400">
+                            <p class="font-bold text-blue-800 mb-1">${term}</p>
+                            <p class="text-sm text-blue-700">${def}</p>
+                        </div>
+                    `).join('');
+                }
 
                 // AI 推荐
                 document.getElementById('aiRecommendation').innerHTML = `
